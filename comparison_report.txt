@@ -1,0 +1,47 @@
+
+================ RL COMPARISON REPORT ================
+
+STANDARD Q-LEARNING
+-------------------
+Total Reward: 6663
+Steps Taken: 2637
+Hazard Hits: 100
+
+Behavior:
+- Chooses shortest path
+- Ignores safety
+- May pass through hazardous cells
+
+
+LAGRANGIAN Q-LEARNING
+---------------------
+Total Reward: 6126
+Steps Taken: 2687
+Hazard Hits: 73
+
+Behavior:
+- Penalizes unsafe actions
+- Avoids hazardous cells
+- Takes safer route
+
+
+SHIELDING-BASED Q-LEARNING
+--------------------------
+Total Reward: 7350
+Steps Taken: 2850
+Hazard Hits: 0
+
+Behavior:
+- Blocks unsafe actions before execution
+- Avoids hazardous cells almost completely
+- Ensures highest safety
+- May take longer path
+
+
+FINAL ANALYSIS
+--------------
+Standard   : Fastest but unsafe
+Lagrangian : Balanced safety and performance
+Shielding  : Safest but slowest
+
+=====================================================

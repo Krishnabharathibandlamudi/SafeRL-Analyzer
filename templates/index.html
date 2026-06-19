@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RL Comparison</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<h2>🚗 Q-Learning vs Lagrangian vs Shielding</h2>
+
+<div class="controls">
+    <button onclick="setMode('start')">🏠 Start</button>
+    <button onclick="setMode('goal')">🏁 Goal</button>
+    <button onclick="setMode('obstacle')">🧱 Obstacle</button>
+    <button onclick="setMode('hazard')">⚠️ Hazard</button>
+    <button onclick="startTraining()">▶ Train</button>
+    <button onclick="resetGrid()">🔄 Reset</button>
+</div>
+
+<div class="container">
+
+    <div>
+        <h3>Standard</h3>
+        <div id="city_std"></div>
+    </div>
+
+    <div>
+        <h3>Lagrangian</h3>
+        <div id="city_lag"></div>
+    </div>
+
+    <div>
+        <h3>Shielding</h3>
+        <div id="city_shield"></div>
+    </div>
+
+</div>
+
+<script>
+
+const size = 10
+
+let mode = ""
+let start = null
+let goal = null
+let hazards = []
+let obstacles = []
+
+// CREATE GRID
+function createGrid(id){
+    let city = document.getElementById(id)
+    city.innerHTML = ""
+
+    for(let i=0;i<size;i++){
+        for(let j=0;j<size;j++){
+
+            let cell = document.createElement("div")
+            cell.className = "road"
+            cell.id = `${id}-${i}-${j}`
+
+            cell.onclick = () => cellClicked(i,j)
+
+            city.appendChild(cell)
+        }
+    }
+}
+
+// INIT ALL 3
+createGrid("city_std")
+createGrid("city_lag")
+createGrid("city_shield")
+
+// MODE SELECT
+function setMode(m){
+    mode = m
+}
+
+// HANDLE CELL CLICK
+function cellClicked(i,j){
+
+    let ids = ["city_std", "city_lag", "city_shield"]
+
+    ids.forEach(id => {
+
+        let cell = document.getElementById(`${id}-${i}-${j}`)
+
+        if(mode === "start"){
+            start = [i,j]
+            cell.innerHTML = "🏠"
+            cell.classList.add("start")
+        }
+
+        else if(mode === "goal"){
+            goal = [i,j]
+            cell.innerHTML = "🏁"
+            cell.classList.add("goal")
+        }
+
+        else if(mode === "obstacle"){
+            obstacles.push([i,j])
+            cell.innerHTML = "🧱"
+            cell.classList.add("obstacle")
+        }
+
+        else if(mode === "hazard"){
+            hazards.push([i,j])
+            cell.innerHTML = "⚠️"
+            cell.classList.add("hazard")
+        }
+    })
+}
+
+// START TRAINING
+function startTraining(){
+
+    if(!start || !goal){
+        alert("Set start and goal first!")
+        return
+    }
+
+    fetch("/set_env",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+            start:start,
+            goal:goal,
+            hazards:hazards,
+            obstacles:obstacles
+        })
+    })
+    .then(()=>fetch("/start"))
+}
+
+// UPDATE ALL CARS
+function updateCars(){
+
+    // STANDARD
+    fetch("/position_std")
+    .then(res=>res.json())
+    .then(pos=>{
+        moveCar("city_std", pos)
+    })
+
+    // LAGRANGIAN
+    fetch("/position_lag")
+    .then(res=>res.json())
+    .then(pos=>{
+        moveCar("city_lag", pos)
+    })
+
+    // SHIELDING
+    fetch("/position_shield")
+    .then(res=>res.json())
+    .then(pos=>{
+        moveCar("city_shield", pos)
+    })
+}
+
+// MOVE CAR
+function moveCar(id, pos){
+    let cell = document.getElementById(`${id}-${pos[0]}-${pos[1]}`)
+    if(cell){
+        clearCars(id)
+        cell.innerHTML = "🚗"
+        cell.classList.add("car")
+    }
+}
+
+// CLEAR OLD CAR
+function clearCars(id){
+    document.querySelectorAll(`#${id} .car`)
+    .forEach(c=>{
+        c.classList.remove("car")
+        if(!c.classList.contains("start") &&
+           !c.classList.contains("goal")){
+            c.innerHTML = ""
+        }
+    })
+}
+
+// RESET GRID
+function resetGrid(){
+    start = null
+    goal = null
+    hazards = []
+    obstacles = []
+
+    createGrid("city_std")
+    createGrid("city_lag")
+    createGrid("city_shield")
+}
+
+// AUTO UPDATE LOOP
+setInterval(updateCars, 150)
+
+</script>
+
+</body>
+</html>

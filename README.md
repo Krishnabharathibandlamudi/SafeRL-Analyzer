@@ -60,7 +60,7 @@ The framework uses a Grid World Environment where:
 The graph below compares the performance of all three reinforcement learning techniques across Total Reward, Steps Taken, and Hazard Hits.
 
 <p align="center">
-  <img src="./images/performance_comparison.png" alt="Performance Comparison" width="800"/>
+  <img src="./Screenshot 2026-06-19 203152.png" alt="Performance Comparison" width="800"/>
 </p>
 
 ### Key Observations
